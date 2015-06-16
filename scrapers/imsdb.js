@@ -1,7 +1,9 @@
 var request = require( 'request' ),
     cheerio = require( 'cheerio' ),
     q = require( 'q' ),
-    assert = require( 'chai' ).assert;
+    assert = require( 'chai' ).assert,
+    path = require( 'path' ),
+    fs = require( 'fs' );
 
 var base_url = 'http://www.imsdb.com';
 var homepage_link = base_url + '/all%20scripts/';
@@ -59,6 +61,28 @@ Movie.prototype.retrieveScript = function() {
         } )();
 };
 
+Movie.prototype.getEscapedName = function() {
+    var escaped_name = this.name.replace( / /g, '-' );
+    return escaped_name;
+};
+
+/**
+ * @method saveToFile
+ * @description Returns a promise that saves the movie to the specified path
+ * file will be saved as path/Movie Name.txt
+ * @returns {Promise} That saves the movie script to the specified path
+ */
+Movie.prototype.saveToFile = function( save_path ) {
+    var file_name = path.resolve( save_path, this.getEscapedName() + '.txt' );
+    var file_contents = this.script;
+
+    return q
+        .Promise( function( resolve ) {
+            console.log( 'Saving to', file_name );
+            fs.writeFile( file_name, file_contents, resolve );
+        } );
+};
+
 /**
  * @function getMovieList
  * @description Takes page selector for movie listing page, and returns a list
@@ -112,6 +136,7 @@ q
         var movie_list = Movie.getMovieList( homepage_selector );
 
         yield movie_list[ 0 ].retrieveScript();
+        yield movie_list[ 0 ].saveToFile( path.resolve( __dirname, '..', 'scraped' ) );
     } )()
     .catch( function( err ) {
         console.error( err );
