@@ -31,17 +31,42 @@ var Movie = function( name, url ) {
 };
 
 /**
- * @function setScript
- * @description sets the movie script text
- * @param script new script text
+ * @method retrieveScript
+ * @description Returns promise that queries this.url, pulls the script page, and parses
+ * out the script text, then sets this.script to the script text
+ * @returns {Promise} Promise that sends http request to download script
  */
-Movie.prototype.setScript = function( script ) {
-    assert.isString( script, 'Script should be string' );
-    this.script = script;
+Movie.prototype.retrieveScript = function() {
+    var _this = this;
+
+    return q
+        .async( function *() {
+            var $ = yield get( _this.url );
+            assert.isDefined( $ );
+
+            // Gets all as with href, the last one if our script link
+            var script_url_path = $( 'td>a[href]' ).last().attr( 'href' );
+            assert.isDefined( script_url_path );
+            _this.url = base_url + script_url_path;
+            assert.isDefined( _this.url );
+
+            // Gets the actual script page
+            $ = yield get( _this.url );
+            assert.isDefined( $ );
+
+            _this.script = $( 'pre' ).text();
+            assert.isDefined( _this.script );
+        } )();
 };
 
-Movie.getMovieList = function( homepage_selector ) {
-    var td_match = homepage_selector( 'td[valign=top]' );
+/**
+ * @function getMovieList
+ * @description Takes page selector for movie listing page, and returns a list
+ * of movies
+ * @param $ {Cheerio Dom Object} Takes cheerio dom selector, uses it to parse movie list
+ */
+Movie.getMovieList = function( $ ) {
+    var td_match = $( 'td[valign=top]' );
 
     assert.isDefined( td_match, 'Td Should have match' );
     assert.equal( td_match.length, 3, 'Td Should have 3 matches' );
@@ -49,7 +74,7 @@ Movie.getMovieList = function( homepage_selector ) {
     var links_container = td_match[ 2 ];
 
     // Every movie is a <p>
-    var p_match = homepage_selector( links_container ).children( 'p' );
+    var p_match = $( links_container ).children( 'p' );
 
     assert.isDefined( p_match, 'P Should have match' )
 
@@ -58,7 +83,7 @@ Movie.getMovieList = function( homepage_selector ) {
 
     p_match
         .each( function() {
-            var p = homepage_selector( this );
+            var p = $( this );
             assert.isDefined( p, 'P for movie should exist' );
 
             // A is the anchor tag that contains the href and movie title
@@ -77,7 +102,7 @@ Movie.getMovieList = function( homepage_selector ) {
             movies.push( movie );
         } );
 
-    console.log( movies );
+    return movies;
 };
 
 q
@@ -85,6 +110,8 @@ q
         var homepage_selector = yield get( homepage_link );
 
         var movie_list = Movie.getMovieList( homepage_selector );
+
+        yield movie_list[ 0 ].retrieveScript();
     } )()
     .catch( function( err ) {
         console.error( err );
