@@ -2,6 +2,8 @@ var request = require( 'request' ),
     cheerio = require( 'cheerio' ),
     q = require( 'q' );
 
+var homepage_link = 'http://www.imsdb.com/all%20scripts/';
+
 var get = function( url ) {
     return q.Promise( function( resolve, reject ) {
         request
@@ -11,3 +13,9 @@ var get = function( url ) {
             } );
     } );
 };
+
+q
+    .async( function *() {
+        var homepage = yield get( homepage_link );
+        console.log( homepage.html() )
+    } )();
