@@ -7,6 +7,7 @@ var request = require( 'request' ),
 
 var base_url = 'http://www.imsdb.com';
 var homepage_link = base_url + '/all%20scripts/';
+var save_path = path.resolve( __dirname, '..', 'scraped' );
 
 var get = function( url ) {
     return q.Promise( function( resolve, reject ) {
@@ -135,8 +136,17 @@ q
 
         var movie_list = Movie.getMovieList( homepage_selector );
 
-        yield movie_list[ 0 ].retrieveScript();
-        yield movie_list[ 0 ].saveToFile( path.resolve( __dirname, '..', 'scraped' ) );
+        yield movie_list
+            .reduce( ( promise, current, i ) => {
+                return promise
+                    .then( function() {
+                        console.log( i, movie_list.length );
+                        return current.retrieveScript();
+                    } )
+                    .then( function() {
+                        return current.saveToFile( save_path );
+                    } );
+            }, q.try( function() {} ) );
     } )()
     .catch( function( err ) {
         console.error( err );
