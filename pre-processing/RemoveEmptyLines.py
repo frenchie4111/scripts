@@ -1,10 +1,16 @@
 import sys
 import re
 
-##########
 
-script = sys.stdin.readlines()
+def main():
+	script = sys.stdin.readlines()
 
-for line in script:
-	if line.rstrip():
-		sys.stdout.write( line )
+	for line in script:
+		if line.rstrip():
+			sys.stdout.write( line )
+
+	pass
+
+
+if __name__ == '__main__':
+	main()
