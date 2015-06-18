@@ -1,10 +1,17 @@
 import sys
 import string
 
-###############
 
-script = sys.stdin.read()
-words = script.split()
+def main():
 
-for word in words:
-	sys.stdout.write(word + '\n')
+	script = sys.stdin.read()
+	words = script.split()
+
+	for word in words:
+		sys.stdout.write(word + '\n')
+
+	pass
+
+
+if __name__ == '__main__':
+	main()

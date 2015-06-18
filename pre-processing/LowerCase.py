@@ -1,8 +1,15 @@
 import sys
 
-##########
 
-script = sys.stdin.readlines()
+def main():
 
-for line in script:
-	sys.stdout.write( line.lower() )
+	script = sys.stdin.readlines()
+
+	for line in script:
+		sys.stdout.write( line.lower() )
+
+	pass
+
+
+if __name__ == '__main__':
+	main()
